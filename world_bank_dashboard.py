@@ -249,7 +249,7 @@ def _(countries, filtered_df, pd, pg, selected_indicator):
         corr = pg.corr(
             country_df[selected_indicator],
             country_df["forest_land%"],
-            method="pearson"
+            method="spearman"
         )
 
         results.append({
@@ -269,9 +269,10 @@ def _(countries, filtered_df, pd, pg, selected_indicator):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ### Correlation Method: Pearson
+    ***Correlation method: Spearman***
 
-    We used **Pearson correlation** to measure the linear relationship between forest land and the selected indicators: GDP per capita, agricultural land and population density. The scatterplots show mostly linear or approximately flat patterns, with no clear evidence of strongly curved relationships and no extreme outliers. Therefore, Pearson correlation was considered appropriate for our analysis.
+    We used **Spearman correlation** because it measures whether two indicators tend to rise or fall together without assuming a straight line.
+    Some countries show curved or skewed patterns (for example Ethiopia's forest land), and Spearman is less affected by such shapes and by a few extreme years than Pearson.
     """)
     return
 
@@ -332,7 +333,7 @@ def _(
             skipped.append(f"**{_country}**: one of the two series does not change in this period, so no correlation can be calculated.")
             continue
 
-        _corr = pg.corr(x=_pair["x"], y=_pair["y"], method="pearson")
+        _corr = pg.corr(x=_pair["x"], y=_pair["y"], method="spearman")
         _r = float(_corr["r"].iloc[0])
 
         # check 3: if pingouin still gives NaN, do not show it
@@ -381,7 +382,7 @@ def _(
     _messages = [mo.callout(mo.md(m), kind="warn") for m in skipped]
 
     table_view = mo.vstack([
-        mo.md(f"**Pearson correlation of {mode_name}, {start_year}–{end_year}**"),
+        mo.md(f"**Spearman correlation of {mode_name}, {start_year}–{end_year}**"),
         _table,
         *_messages,
     ])
@@ -483,7 +484,6 @@ def _(alt, filtered_df, mo, selected_indicator, x_label):
 
     over_time_view = mo.vstack([
         mo.hstack([forest_lines, indicator_lines], justify="start"),
-        mo.md("*Do both lines move steadily in one direction? Then a shared trend can explain the correlation.*"),
     ])
     return (over_time_view,)
 
@@ -508,7 +508,6 @@ def _(alt, filtered_df, mo, selected_indicator, x_label):
 
     distribution_view = mo.vstack([
         mo.hstack([forest_hist, indicator_hist], justify="start"),
-        mo.md("*Skewed values, a few extreme years or separate clusters per country? Then Spearman can be safer than Pearson.*"),
     ])
     return (distribution_view,)
 
@@ -561,10 +560,16 @@ def _(
     dashboard_tabs = mo.ui.tabs({
         "Claim check": claim_check_tab,
         "Over time": over_time_view,
-        "Distributions": distribution_view,
+        "Distributions": distribution_view
     })
 
-    mo.vstack([a, b, changes_switch, dashboard_tabs])
+    mo.vstack(
+        [a, 
+         b, 
+         "We used Spearman correlation because it measures whether two indicators tend to rise or fall together without assuming a straight line. Some countries show curved or skewed patterns (for example Ethiopia's forest land), and Spearman is less affected by such shapes and by a few extreme years than Pearson.",
+        changes_switch, 
+        dashboard_tabs]
+    )
     return
 
 
