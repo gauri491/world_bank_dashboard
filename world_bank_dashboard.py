@@ -489,36 +489,11 @@ def _(alt, filtered_df, mo, selected_indicator, x_label):
 
 
 @app.cell
-def _(alt, filtered_df, mo, selected_indicator, x_label):
-    # histogram of the main indicator
-    forest_hist = alt.Chart(filtered_df.dropna(subset=["forest_land%"])).mark_bar().encode(
-        x=alt.X("forest_land%:Q", bin=alt.Bin(maxbins=15), title="Forest land (% of land area)"),
-        y=alt.Y("count():Q", title="Number of country-years"),
-        color=alt.Color("country:N", title="Country"),
-        tooltip=[alt.Tooltip("count():Q", title="Country-years")],
-    ).properties(width=380, height=250, title="Distribution of forest land")
-
-    # histogram of the chosen indicator
-    indicator_hist = alt.Chart(filtered_df.dropna(subset=[selected_indicator])).mark_bar().encode(
-        x=alt.X(f"{selected_indicator}:Q", bin=alt.Bin(maxbins=15), title=x_label),
-        y=alt.Y("count():Q", title="Number of country-years"),
-        color=alt.Color("country:N", title="Country"),
-        tooltip=[alt.Tooltip("count():Q", title="Country-years")],
-    ).properties(width=380, height=250, title=f"Distribution of {x_label}")
-
-    distribution_view = mo.vstack([
-        mo.hstack([forest_hist, indicator_hist], justify="start"),
-    ])
-    return (distribution_view,)
-
-
-@app.cell
 def _(
     a,
     alt,
     b,
     changes_switch,
-    distribution_view,
     filtered_df,
     mo,
     over_time_view,
@@ -560,7 +535,6 @@ def _(
     dashboard_tabs = mo.ui.tabs({
         "Claim check": claim_check_tab,
         "Over time": over_time_view,
-        "Distributions": distribution_view
     })
 
     mo.vstack(
